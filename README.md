@@ -116,3 +116,29 @@ pwsh ./scripts/publish-gui.ps1
 ## License
 
 MIT
+
+---
+
+## Hotfix: Dual-SQLite support
+
+This fork adds support for Codex Desktop's new ~/.codex/sqlite/state_5.sqlite database location (alongside the legacy ~/.codex/state_5.sqlite).
+
+Modern Codex Desktop (Windows Store / v26+) reads sidebar session data from ~/.codex/sqlite/state_5.sqlite, while the original codex-provider-sync only wrote to ~/.codex/state_5.sqlite. This caused sync to appear successful but show no changes in the Desktop sidebar.
+
+### Changes
+
+- **sqlite-state.js**: stateDbPath() now prefers .codex/sqlite/state_5.sqlite over .codex/state_5.sqlite. All write operations (updateSqliteProvider, ssertSqliteWritable) iterate **both** databases.
+- **backup.js**: Backups include both state_5.sqlite locations (root and sqlite/ subdirectory), along with their -wal/-shm companion files.
+
+### Usage
+
+Same commands as the original:
+
+`powershell
+codex-provider sync --provider openai   # Make all sessions visible under OpenAI mode
+codex-provider sync --provider custom   # Make all sessions visible under custom mode
+codex-provider status                   # Check current state
+`
+
+Run these with Codex Desktop fully closed for best results.
+
