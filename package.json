@@ -1,0 +1,28 @@
+{
+  "name": "codex-provider-sync",
+  "version": "0.2.5",
+  "description": "Synchronize Codex session provider metadata across rollout files and SQLite state.",
+  "type": "module",
+  "files": [
+    "README.md",
+    "AGENTS.md",
+    "docs",
+    "src"
+  ],
+  "bin": {
+    "codex-provider": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "keywords": [
+    "codex",
+    "sqlite",
+    "sessions",
+    "provider"
+  ],
+  "license": "MIT"
+}
