@@ -327,3 +327,28 @@ export async function updateSqliteProvider(codexHome, targetProvider, afterUpdat
 
   return totals;
 }
+export async function readSqliteSessionTitles(codexHome) {
+  const dbPaths = stateDbPaths(codexHome);
+  if (dbPaths.length === 0) return null;
+  const dbPath = dbPaths[0];
+  try {
+    await fs.access(dbPath);
+  } catch {
+    return null;
+  }
+  let db;
+  try {
+    db = new DatabaseSync(dbPath, { readOnly: true });
+    const rows = db.prepare(`
+      SELECT id, title, model_provider, cwd, archived, source, thread_source, updated_at_ms
+      FROM threads
+      WHERE COALESCE(title, '') <> ''
+      ORDER BY updated_at_ms DESC
+    `).all();
+    return rows;
+  } catch {
+    return null;
+  } finally {
+    db?.close();
+  }
+}

@@ -34,6 +34,7 @@ import {
 import {
   assertSqliteWritable,
   readSqliteProviderCounts,
+  readSqliteSessionTitles,
   readSqliteRepairStats,
   updateSqliteProvider
 } from "./sqlite-state.js";
@@ -109,6 +110,7 @@ export async function getStatus({ codexHome: explicitCodexHome } = {}) {
     threadCwdById
   } = await collectSessionChanges(codexHome, "__status_only__", { skipLockedReads: true });
   const sqliteCounts = await readSqliteProviderCounts(codexHome);
+  const sqliteSessions = await readSqliteSessionTitles(codexHome);
   const sqliteRepairStats = sqliteCounts && !sqliteCounts.unreadable
     ? await readSqliteRepairStats(codexHome, { userEventThreadIds, threadCwdById })
     : null;
@@ -127,6 +129,7 @@ export async function getStatus({ codexHome: explicitCodexHome } = {}) {
     encryptedContentCounts,
     encryptedContentWarning: buildEncryptedContentWarning(encryptedContentCounts, current.provider ?? DEFAULT_PROVIDER),
     sqliteCounts,
+    sqliteSessions,
     sqliteRepairStats,
     projectThreadVisibility,
     backupRoot: defaultBackupRoot(codexHome),
@@ -160,6 +163,18 @@ export function renderStatus(status) {
 
   lines.push("");
   lines.push("SQLite state:");
+  if (status.sqliteSessions?.length) {
+    const activeSessions = status.sqliteSessions.filter((s) => !s.archived);
+    if (activeSessions.length > 0) {
+      lines.push(`  Active sessions (${activeSessions.length}):`);
+      for (const s of activeSessions) {
+        const marker = s.model_provider === status.currentProvider ? "*" : " ";
+        const providerPadded = (s.model_provider ?? "?").padEnd(10);
+        const title = (s.title ?? "(no title)").slice(0, 60);
+        lines.push(`    ${marker} [${providerPadded}] ${title}`);
+      }
+    }
+  }
   if (status.sqliteCounts?.unreadable) {
     lines.push(`  ${status.sqliteCounts.error ?? "state_5.sqlite is malformed or unreadable"}`);
   } else if (!status.sqliteCounts) {
